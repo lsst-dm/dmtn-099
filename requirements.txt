@@ -1,0 +1,2 @@
+documenteer[technote]>=0.2.1,<0.3
+-e git://github.com/lsst-sqre/lsst_dd_rtd_theme.git@master#egg=lsst_dd_rtd_theme
