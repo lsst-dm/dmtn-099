@@ -1,7 +1,7 @@
-.. image:: https://img.shields.io/badge/dmtn--098-lsst.io-brightgreen.svg
-   :target: https://dmtn-098.lsst.io
-.. image:: https://travis-ci.org/lsst-dm/dmtn-098.svg
-   :target: https://travis-ci.org/lsst-dm/dmtn-098
+.. image:: https://img.shields.io/badge/dmtn--099-lsst.io-brightgreen.svg
+   :target: https://dmtn-099.lsst.io
+.. image:: https://travis-ci.org/lsst-dm/dmtn-099.svg
+   :target: https://travis-ci.org/lsst-dm/dmtn-099
 ..
   Uncomment this section and modify the DOI strings to include a Zenodo DOI badge in the README
   .. image:: https://zenodo.org/badge/doi/10.5281/zenodo.#####.svg
@@ -11,17 +11,17 @@
 Options for Generating Unique IDs in the LSST Gen3 Butler Registry
 ##################################################################
 
-DMTN-098
+DMTN-099
 ========
 
 Documents results of testing three methods of generating unique IDs for Gen3 Butler Registry in Oracle database..
 
 **Links:**
 
-- Publication URL: https://dmtn-098.lsst.io
-- Alternative editions: https://dmtn-098.lsst.io/v
-- GitHub repository: https://github.com/lsst-dm/dmtn-098
-- Build system: https://travis-ci.org/lsst-dm/dmtn-098
+- Publication URL: https://dmtn-099.lsst.io
+- Alternative editions: https://dmtn-099.lsst.io/v
+- GitHub repository: https://github.com/lsst-dm/dmtn-099
+- Build system: https://travis-ci.org/lsst-dm/dmtn-099
 
 
 Build this technical note
@@ -31,8 +31,8 @@ You can clone this repository and build the technote locally with `Sphinx`_:
 
 .. code-block:: bash
 
-   git clone https://github.com/lsst-dm/dmtn-098
-   cd dmtn-098
+   git clone https://github.com/lsst-dm/dmtn-099
+   cd dmtn-099
    pip install -r requirements.txt
    make html
 
@@ -52,7 +52,7 @@ The `DM reStructuredText Style Guide`_ is a good resource for how we write reStr
 Remember that images and other types of assets should be stored in the ``_static/`` directory of this repository.
 See ``_static/README.rst`` for more information.
 
-The published technote at https://dmtn-098.lsst.io will be automatically rebuilt whenever you push your changes to the ``master`` branch on `GitHub <https://github.com/lsst-dm/dmtn-098>`_.
+The published technote at https://dmtn-099.lsst.io will be automatically rebuilt whenever you push your changes to the ``master`` branch on `GitHub <https://github.com/lsst-dm/dmtn-099>`_.
 
 Updating metadata
 =================
