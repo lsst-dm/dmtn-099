@@ -53,7 +53,7 @@ Overview
    multiple registry instances to search across multiple sources of data. Additionally, the key 
    generation method must work without connectivity to LSST central services. In the case of
    local Gen3 Butler instances with or without connectivity, IDs do not have to be universally
-   unique at generation time but can be made unique later when required. Strong preference should
+   unique at generation time. They can be made unique later when required. Strong preference should
    be given to an id generation method that works in all use cases.
 
    .. _Gen3 Butler Registry: https://dmtn-073.lsst.io
@@ -162,7 +162,7 @@ discussion" section of this document.
 .. note::
 
    Special consideration must be given to raw images. They will often be ingested by more than 
-   a single Butler registry independently of the Data Backbone. Raw file key generation should
+   a single Butler registry independent of the Data Backbone. Raw file key generation should
    be deterministic across all Butler registries. This makes sense for a number of reasons 
    including easing migration of output datasets between Gen3 Butler registries.
 
