@@ -48,11 +48,13 @@
 Overview
 ########
 
-   In the `Gen3 Butler Registry`_ (`RFC-484`_), IDs must be unique not only within
-   a schema but across multiple schemas. This is because the design 
-   requires the union of tables across multiple schemas to search across 
-   multiple sources of data. Additionally, the key generation method must be able to maintain 
-   uniqueness whether the application is online or offline.
+   In the `Gen3 Butler Registry`_ (`RFC-484`_), IDs must be universally unique across all
+   Gen3 Butler instances. This is because the design requires the union of tables across 
+   multiple registry instances to search across multiple sources of data. Additionally, the key 
+   generation method must work without connectivity to LSST central services. In the case of
+   local Gen3 Butler instances with or without connectivity, IDs do not have to be universally
+   unique at generation time but can be made unique later when required. Strong preference should
+   be given to an id generation method that works in all use cases.
 
    .. _Gen3 Butler Registry: https://dmtn-073.lsst.io
 
@@ -75,19 +77,19 @@ Overview
 
    This document describes performance and scalability findings for three
    candidate key generation methods used to support the universally unique 
-   IDs requirement for the Gen3 Butler application. 
+   IDs requirement for the Gen3 Butler software. 
    
-   Based on these findings, we recommend that the two-column database generated 
-   key method be used. This option scales as well or better than any other option 
-   and is least likely to cause additional issues for the application.
+   Based on these findings, we recommend a two-column (SiteID, ID) database 
+   generated key method. This option scales as well or better than any other 
+   option and is least likely to cause additional issues.
    
    .. note:: 
 
              In the following discussions, there are references to a
              **merge** process.   Merge takes data from one source Registry (say
              inside a compute job) and loads it into another destination
-             Registry (making IDs unique when necessary)
-
+             Registry. This merge will make IDs universally unique when necessary.
+             
 ####################################
 Description of ID generation methods 
 ####################################
@@ -128,10 +130,10 @@ Registry uses local database sequences.
 
 A database sequence is the usual method to generate unique IDs for
 use within a database.  However, a sequence alone will not meet the universally unique
-ID requirement across all Butler repositories as there cannot be a central source of 
+ID requirement across all Butler registries as there cannot be a central source of 
 sequence values. A universally unique ID can be generated with the combination of local 
 database sequences and an ingestion site ID that uniquely identifies each Gen3 Butler 
-repository.  
+registry.  
 
 We considered several different approaches to implementing this.  The most obvious 
 implementation stores these IDs as a two-column primary key. Other implementations 
@@ -157,11 +159,22 @@ discussion" section of this document.
     3. As insertion rates and concurrency increase, blocks become "hot" and sessions
        begin to wait to acquire locks and latches used to manage concurrency. 
   
+.. note::
+
+   Special consideration must be given to raw images. They will often be ingested by more than 
+   a single Butler registry independently of the Data Backbone. Raw file key generation should
+   be deterministic across all Butler registries. This makes sense for a number of reasons 
+   including easing migration of output datasets between Gen3 Butler registries.
+
+   Similar to raw images, certain EFD LFA files have the same requirements for the same reasons.
+
 .. note:: 
 
-   Also considered was an External Generator of Unique IDs. This was not
-   included as part of the testing because Gen3 Butler requires the ability to
-   perform registry inserts without an internet connection.
+   Also considered was an external generator of unique IDs such as a central Oracle database
+   providing unique sequence values or open source services such as Twitter Snowflake. This 
+   was not included as part of the testing because Gen3 Butler requires the ability to
+   perform registry inserts without network connectivity to any particular service. This would
+   also introduce additional dependencies with availability consequences.
 
 ##############################
 Description of tests performed
@@ -289,7 +302,7 @@ in the index.
 However, once enough data accumulates in the UUID4 table relative to SGA size, PK index blocks needed for 
 inserts are less and less likely to be found in cache. A tipping point is eventually reached and the UUID4 
 workload profile becomes dominated by physical I/O. As shown in the output above 97% of database time was 
-associated with "db file sequential read" physical I/O wait event causing the UUID4 test to take more than 
+associated with the "db file sequential read" physical I/O wait event causing the UUID4 test to take more than 
 four times as long as the other two methods to complete when target tables have approximately 20 million 
 preexisting rows. This problem continues to get worse as data accumulates preventing the UUID4 method from 
 scaling. This also has negative performance side effects for simultaneous database activity since the cache is 
@@ -308,7 +321,7 @@ UUID1 key generation suffers from the possibility of duplicate values produced b
 the same hardware generating values at the same time. Duplicate keys were generated on three occasions during 
 performance testing. It's for this reason we don't recommend the use of UUID1 based keys.
 
-The requirements of Gen3 Butler application mandate universally unique IDs across all repositories. We can satisfy 
+Requirements for the Gen3 Butler software mandate universally unique IDs across all registries. We can satisfy 
 this requirement by allocating unique site IDs so that keys can be maintained independently at each site. The 
 combination of the two satisfies universal uniqueness.  
 
@@ -316,23 +329,50 @@ There was additional discussion on whether to implement the local database seque
 two-column primary key.
 
 One single column implementation uses the decimal portion of a number datatype to designate a static site ID for each 
-Butler repository and bytes to the left of the decimal point for sequence generated uniqueness within sites. This strategy 
+Butler registry and bytes to the left of the decimal point for sequence generated uniqueness within sites. This strategy 
 was abandoned because of concerns associated with implicit rounding while values are passed between variables in different 
 programming languages. This method also violates first normal form and requires extra interpretation to extract the full 
 meaning of the value. 
 
 Another single column implementation converts sequence and fixed width site ID values to string datatype, appends the two 
 together, and converts back to a number.  While this works logically, there is unnecessary overhead during datatype 
-conversion and it offers no real advantage over the two column implementation. As with the previous method, this violates 
+conversion and it offers no real advantage over the two-column implementation. As with the previous method, this violates 
 first normal form. We do not recommend this option.
 
 Finally, the two-column database generated approach was considered. This solution does not suffer from the performance 
 overhead, rounding concerns, or violation of database normalization that the other database ID generation methods do. 
 It is, however, the option that requires the most development work to accommodate the merge process.
 
-################## 
-Supporting scripts
-##################
+############################
+SQLite key generation method
+############################
+
+SQLite's concurrency model and standard ID generation method are significantly 
+different than the Oracle database. Here we provide sample code to demonstrate 
+the feasibility of two columns universally unique approach in an SQLite database.
+
+SQLite DDL
+==========
+
+.. include:: _static/sqlite.ddl
+   :literal:
+
+SQLite ID generation script
+===========================
+
+.. include:: _static/sqlite_key.py
+   :literal:
+
+SQLite test harness bash script
+===============================
+
+.. include:: _static/sqlite_key.sh
+   :code: console
+   :literal:
+
+######################## 
+Scripts used for testing
+########################
 
 .. _database_ddl.sql:
 
@@ -345,7 +385,7 @@ Database DDL
 
 .. _test_harness.sh:
 
-Tesh harness bash script
+Test harness bash script
 ========================
 
    .. include:: _static/test_harness.sh
@@ -375,6 +415,7 @@ SEQ_inserts.py
 
 .. include:: _static/seq_inserts.py
    :literal:
+
 
 .. Add content here.
 .. Do not include the document title (it's automatically added from metadata.yaml).
