@@ -349,7 +349,7 @@ SQLite key generation method
 
 SQLite's concurrency model and standard ID generation method are significantly 
 different than the Oracle database. Here we provide sample code to demonstrate 
-the feasibility of two columns universally unique approach in an SQLite database.
+the feasibility of a two column universally unique ID approach in an SQLite database.
 
 SQLite DDL
 ==========
